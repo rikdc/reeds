@@ -1,0 +1,8 @@
+{
+  "name": "reeds",
+  "description": "Autonomous multi-task development loops powered by Beads issue tracking. Ralph Loop + Beads integration.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Reeds Contributors"
+  }
+}
