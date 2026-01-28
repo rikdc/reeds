@@ -5,17 +5,24 @@ allowed-tools: ["Bash(cat:*)", "Bash(bd:*)", "Bash(head:*)"]
 
 # Reeds Status
 
-Show current Reeds state:
+Show current Reeds/Ralph loop state and Beads status:
 
 ```!
-if [[ -f ".claude/reeds-state.local.md" ]]; then
-    echo "Reeds Active"
-    echo ""
-    head -20 ".claude/reeds-state.local.md"
-    echo ""
-    echo "=== Beads Stats ==="
-    bd stats 2>/dev/null || echo "Beads not available"
+echo "=== Ralph Loop Status ==="
+if [[ -f ".claude/ralph-loop.local.md" ]]; then
+    echo "Ralph Loop: ACTIVE"
+    head -10 ".claude/ralph-loop.local.md"
 else
-    echo "Reeds not active"
+    echo "Ralph Loop: not active"
+fi
+
+echo ""
+echo "=== Beads Status ==="
+if command -v bd &> /dev/null && bd stats &> /dev/null 2>&1; then
+    echo "Ready tasks:   $(bd ready --json 2>/dev/null | jq 'length' 2>/dev/null || echo 0)"
+    echo "Blocked tasks: $(bd blocked --json 2>/dev/null | jq 'length' 2>/dev/null || echo 0)"
+    echo "Total tasks:   $(bd list --json 2>/dev/null | jq 'length' 2>/dev/null || echo 0)"
+else
+    echo "Beads not initialized"
 fi
 ```

@@ -1,20 +1,17 @@
 ---
 description: "Cancel Reeds loop"
-allowed-tools: ["Bash(rm:*)", "Bash(cat:*)"]
+allowed-tools: ["Bash(sed:*)", "Bash(cat:*)", "Bash(rm:*)"]
 ---
 
 # Reeds Cancel
 
-Cancel the active Reeds loop:
-
 ```!
 if [[ -f ".claude/reeds-state.local.md" ]]; then
-    echo "Cancelling Reeds loop..."
-    cat ".claude/reeds-state.local.md" | head -15
-    rm ".claude/reeds-state.local.md"
-    echo ""
-    echo "Reeds loop cancelled"
+  sed -i.bak "s/^active: true/active: false/" .claude/reeds-state.local.md
+  rm -f .claude/reeds-state.local.md.bak
+  echo "Reeds loop cancelled."
+  cat .claude/reeds-state.local.md
 else
-    echo "No active Reeds loop"
+  echo "Reeds is not active."
 fi
 ```
