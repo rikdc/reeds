@@ -35,6 +35,7 @@ FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
 ACTIVE=$(echo "$FRONTMATTER" | grep '^active:' | sed 's/active: *//')
 ITERATION=$(echo "$FRONTMATTER" | grep '^iteration:' | sed 's/iteration: *//')
 MAX_ITERATIONS=$(echo "$FRONTMATTER" | grep '^max_iterations:' | sed 's/max_iterations: *//')
+CURRENT_TASK_ID=$(echo "$FRONTMATTER" | grep '^current_task_id:' | sed 's/current_task_id: *//' | sed 's/^"//' | sed 's/"$//')
 
 # Check if active
 if [[ "$ACTIVE" != "true" ]]; then
@@ -55,8 +56,9 @@ if [[ $MAX_ITERATIONS -gt 0 ]] && [[ $ITERATION -ge $MAX_ITERATIONS ]]; then
   exit 0
 fi
 
-# Get transcript path and check for completion promise
+# Get transcript path and check for completion promises
 TRANSCRIPT_PATH=$(echo "$HOOK_INPUT" | jq --raw-output '.transcript_path // empty')
+LAST_OUTPUT=""
 
 if [[ -n "$TRANSCRIPT_PATH" ]] && [[ -f "$TRANSCRIPT_PATH" ]]; then
   # Get last assistant message using jq to parse the entire JSONL file
@@ -72,46 +74,78 @@ if [[ -n "$TRANSCRIPT_PATH" ]] && [[ -f "$TRANSCRIPT_PATH" ]]; then
       . // ""
     end
   ' "$TRANSCRIPT_PATH" 2>/dev/null || echo "")
+fi
 
-  # Check for completion promise
-  if [[ "$LAST_OUTPUT" == *"<promise>REEDS COMPLETE</promise>"* ]]; then
-    echo "Reeds: All tasks complete!"
-    sed_inplace "s/^active: true/active: false/" "$STATE_FILE"
-    exit 0
-  fi
+# Check for REEDS COMPLETE (all tasks done)
+if [[ "$LAST_OUTPUT" == *"<promise>REEDS COMPLETE</promise>"* ]]; then
+  echo "Reeds: All tasks complete!"
+  sed_inplace "s/^active: true/active: false/" "$STATE_FILE"
+  exit 0
+fi
+
+# Check for TASK COMPLETE (current task done, get next)
+TASK_COMPLETE=""
+if [[ "$LAST_OUTPUT" =~ \<promise\>TASK\ COMPLETE:\ ([^<]+)\</promise\> ]]; then
+  TASK_COMPLETE="${BASH_REMATCH[1]}"
 fi
 
 # Increment iteration
 NEXT_ITERATION=$((ITERATION + 1))
 sed_inplace "s/^iteration: .*/iteration: $NEXT_ITERATION/" "$STATE_FILE"
 
-# Build the re-injection prompt
-PROMPT="Continue the Reeds task loop.
+# Determine which prompt to re-inject
+if [[ -n "$TASK_COMPLETE" ]]; then
+  # Task completed - clear current task and get next
+  sed_inplace "s/^current_task_id: .*/current_task_id: \"\"/" "$STATE_FILE"
 
-## Your Task Loop
+  PROMPT="Task $TASK_COMPLETE completed. Get the next task.
 
-Work through ALL Beads tasks using this exact process:
-
-### For Each Task:
+## Next Steps
 1. Run: \`bd ready --limit 1\`
 2. If no tasks returned: Output \`<promise>REEDS COMPLETE</promise>\` and stop
-3. Extract the task ID from the output
-4. Run: \`bd show <task-id>\` to get full details
-5. Use the **task-implementer agent** to implement the task
-   - Pass the task title and description to the agent
-   - Wait for the agent to complete and return its summary
-6. Run: \`bd close <task-id> --reason \"<summary from agent>\"\`
-7. Go back to step 1
+3. If task returned:
+   - Extract the task ID
+   - Run: \`bd show <task-id>\` to get full details
+   - Use the **task-implementer agent** to implement the task
+   - When the agent completes, output \`<promise>TASK COMPLETE: <task-id></promise>\`
+   - Then run: \`bd close <task-id> --reason \"<summary>\"\`
 
-### Rules
-- Use the task-implementer agent for ALL implementation work
-- Do NOT implement tasks directly - always delegate to the agent
-- Continue until no ready tasks remain
-
-### Start Now
 Run: \`bd ready --limit 1\`"
 
-SYSTEM_MSG="Reeds iteration $NEXT_ITERATION/$MAX_ITERATIONS | To complete: output <promise>REEDS COMPLETE</promise> when bd ready returns nothing"
+  SYSTEM_MSG="Reeds iteration $NEXT_ITERATION/$MAX_ITERATIONS | Task $TASK_COMPLETE done, getting next task"
+
+elif [[ -n "$CURRENT_TASK_ID" ]]; then
+  # Task in progress - continue working on it
+  PROMPT="Continue implementing task $CURRENT_TASK_ID.
+
+The task is not yet complete. Use the **task-implementer agent** to continue working on it.
+
+When the task is fully implemented and verified:
+1. Output \`<promise>TASK COMPLETE: $CURRENT_TASK_ID</promise>\`
+2. Run: \`bd close $CURRENT_TASK_ID --reason \"<summary>\"\`
+
+If you need task details again, run: \`bd show $CURRENT_TASK_ID\`"
+
+  SYSTEM_MSG="Reeds iteration $NEXT_ITERATION/$MAX_ITERATIONS | Continue task $CURRENT_TASK_ID"
+
+else
+  # No current task - get one
+  PROMPT="Get the next task from Beads.
+
+## Task Loop
+1. Run: \`bd ready --limit 1\`
+2. If no tasks returned: Output \`<promise>REEDS COMPLETE</promise>\` and stop
+3. If task returned:
+   - Extract the task ID
+   - Run: \`bd show <task-id>\` to get full details
+   - Use the **task-implementer agent** to implement the task
+   - When the agent completes, output \`<promise>TASK COMPLETE: <task-id></promise>\`
+   - Then run: \`bd close <task-id> --reason \"<summary>\"\`
+
+Run: \`bd ready --limit 1\`"
+
+  SYSTEM_MSG="Reeds iteration $NEXT_ITERATION/$MAX_ITERATIONS | Get next task"
+fi
 
 # Output JSON to block exit and re-inject prompt
 jq --null-input \

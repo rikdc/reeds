@@ -35,11 +35,12 @@ cat > .claude/reeds-state.local.md << EOF
 active: true
 iteration: 1
 max_iterations: $max_iterations
+current_task_id: ""
 started_at: $(date -u +%Y-%m-%dT%H:%M:%SZ)
 ---
 EOF
 
-echo "🌾 Reeds activated!"
+echo "Reeds activated!"
 echo ""
 echo "Ready tasks: $ready_count"
 echo "Max iterations: $max_iterations"
