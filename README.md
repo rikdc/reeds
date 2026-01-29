@@ -167,6 +167,10 @@ Claude will work through each task, closing them as they're completed, until no 
 - Ensure tasks are in `open` status: `bd list`
 - Check for dependency blocks: `bd blocked`
 
+## Acknowledgments
+
+The `/prd-to-beads` skill is adapted from [ralph-tui](https://github.com/human-ui/ralph-tui) (MIT License).
+
 ## License
 
 MIT

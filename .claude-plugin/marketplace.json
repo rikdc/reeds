@@ -1,0 +1,35 @@
+{
+  "name": "reeds",
+  "owner": {
+    "name": "Reeds Contributors"
+  },
+  "metadata": {
+    "description": "Autonomous multi-task development loops powered by Beads issue tracking",
+    "version": "0.1.0"
+  },
+  "plugins": [
+    {
+      "name": "reeds",
+      "source": "./",
+      "description": "Autonomous multi-task development loops powered by Beads issue tracking. Ralph Loop + Beads integration for continuous task execution.",
+      "version": "0.1.0",
+      "author": {
+        "name": "Reeds Contributors"
+      },
+      "homepage": "https://github.com/rikdc/reeds",
+      "repository": "https://github.com/rikdc/reeds",
+      "license": "MIT",
+      "keywords": [
+        "automation",
+        "beads",
+        "issue-tracking",
+        "ralph-loop",
+        "autonomous",
+        "task-management",
+        "workflow",
+        "ci-cd"
+      ],
+      "category": "automation"
+    }
+  ]
+}
