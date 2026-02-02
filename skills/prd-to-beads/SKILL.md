@@ -1,6 +1,8 @@
 ---
 name: prd-to-beads
-description: "Convert PRDs to Beads tasks for Reeds autonomous execution. Creates an epic with child beads for each user story. Triggers on: create beads, convert prd to beads, prd to tasks."
+description: "Convert PRDs to Beads tasks for Reeds autonomous execution. Creates an epic with child beads for each user story."
+version: "0.1.0"
+allowed-tools: "Read,Bash(bd:*)"
 ---
 
 # PRD to Beads
