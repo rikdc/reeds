@@ -15,8 +15,10 @@ if [[ ! -f "$STATE_FILE" ]]; then
 fi
 
 # Update current_task_id in state file
+# Escape special characters in task ID to prevent sed injection
+ESCAPED_TASK_ID=$(printf '%s' "$TASK_ID" | sed 's/[&/\]/\\&/g')
 TEMP_FILE=$(mktemp)
-sed "s/^current_task_id: .*/current_task_id: \"$TASK_ID\"/" "$STATE_FILE" > "$TEMP_FILE"
+sed "s/^current_task_id: .*/current_task_id: \"$ESCAPED_TASK_ID\"/" "$STATE_FILE" > "$TEMP_FILE"
 mv "$TEMP_FILE" "$STATE_FILE"
 
 echo "Current task set to: $TASK_ID"
