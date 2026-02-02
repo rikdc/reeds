@@ -4,6 +4,7 @@ STATE_FILE=".claude/reeds-state.local.md"
 TEMP_FILE=""
 
 # Cleanup trap for temp files
+# shellcheck disable=SC2329  # Function invoked via trap
 cleanup() {
   if [[ -n "$TEMP_FILE" ]] && [[ -f "$TEMP_FILE" ]]; then
     rm -f "$TEMP_FILE"
@@ -45,7 +46,8 @@ FRONTMATTER=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }' "$STATE_FILE")
 ACTIVE=$(echo "$FRONTMATTER" | grep '^active:' | sed 's/active: *//')
 ITERATION=$(echo "$FRONTMATTER" | grep '^iteration:' | sed 's/iteration: *//')
 MAX_ITERATIONS=$(echo "$FRONTMATTER" | grep '^max_iterations:' | sed 's/max_iterations: *//')
-CURRENT_TASK_ID=$(echo "$FRONTMATTER" | grep '^current_task_id:' | sed 's/current_task_id: *//' | sed 's/^"//' | sed 's/"$//')
+# Simplified: combine multiple sed calls into one
+CURRENT_TASK_ID=$(echo "$FRONTMATTER" | sed -n 's/^current_task_id: *"\?\([^"]*\)"\?/\1/p')
 
 # Check if active
 if [[ "$ACTIVE" != "true" ]]; then
