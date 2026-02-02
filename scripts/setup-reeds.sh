@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 # Parse arguments
 max_iterations=30
@@ -17,7 +16,7 @@ if ! command -v bd &> /dev/null; then
   exit 1
 fi
 
-if ! bd stats &> /dev/null 2>&1; then
+if ! bd stats &> /dev/null; then
   echo "ERROR: Beads not initialized. Run: bd init" >&2
   exit 1
 fi
@@ -29,7 +28,11 @@ if [[ "$ready_count" == "0" ]]; then
 fi
 
 # Create Reeds state file
-mkdir -p .claude
+if ! mkdir -p .claude; then
+  echo "ERROR: Failed to create .claude directory" >&2
+  exit 1
+fi
+
 cat > .claude/reeds-state.local.md << EOF
 ---
 active: true

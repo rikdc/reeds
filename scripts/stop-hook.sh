@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-set -euo pipefail
 
 STATE_FILE=".claude/reeds-state.local.md"
 TEMP_FILE=""
@@ -17,9 +16,20 @@ sed_inplace() {
   local pattern="$1"
   local file="$2"
   TEMP_FILE=$(mktemp)
-  sed "$pattern" "$file" > "$TEMP_FILE"
-  mv "$TEMP_FILE" "$file"
+  if ! sed "$pattern" "$file" > "$TEMP_FILE"; then
+    echo "Warning: sed operation failed" >&2
+    rm -f "$TEMP_FILE"
+    TEMP_FILE=""
+    return 1
+  fi
+  if ! mv "$TEMP_FILE" "$file"; then
+    echo "Warning: Failed to update file" >&2
+    rm -f "$TEMP_FILE"
+    TEMP_FILE=""
+    return 1
+  fi
   TEMP_FILE=""
+  return 0
 }
 
 # Read hook input from stdin
