@@ -21,7 +21,7 @@ Take a PRD (markdown file or text) and create beads in `.beads/beads.jsonl`:
 2. Create an **epic** bead for the feature
 3. Create **child beads** for each user story (with quality gates appended)
 4. Set up **dependencies** between beads (schema → backend → UI)
-5. Output ready for `/reeds-start`
+5. Output ready for `/reeds:reeds-start`
 
 ---
 
@@ -324,7 +324,7 @@ Beads are written to: `.beads/beads.jsonl`
 After creation, start Reeds:
 
 ```bash
-/reeds-start
+/reeds:reeds-start
 ```
 
 Reeds will:

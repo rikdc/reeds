@@ -5,15 +5,15 @@ allowed-tools: ["Bash(cat:*)", "Bash(bd:*)", "Bash(head:*)"]
 
 # Reeds Status
 
-Show current Reeds/Ralph loop state and Beads status:
+Show current Reeds loop state and Beads status:
 
 ```!
-echo "=== Ralph Loop Status ==="
-if [[ -f ".claude/ralph-loop.local.md" ]]; then
-    echo "Ralph Loop: ACTIVE"
-    head -10 ".claude/ralph-loop.local.md"
+echo "=== Reeds Loop Status ==="
+if [[ -f ".claude/reeds-state.local.md" ]]; then
+    echo "Reeds Loop: ACTIVE"
+    head -10 ".claude/reeds-state.local.md"
 else
-    echo "Ralph Loop: not active"
+    echo "Reeds Loop: not active"
 fi
 
 echo ""
